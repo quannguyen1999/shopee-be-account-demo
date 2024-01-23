@@ -83,7 +83,10 @@ public class SecurityConfig {
     @Order(2)
     SecurityFilterChain appSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .authorizeHttpRequests(authorize ->authorize.anyRequest().authenticated())
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/css/**").permitAll() // Permit access to CSS resources
+                        .anyRequest().authenticated()
+                )
                 .formLogin().loginPage(DEFAULT_URL_LOGIN_PATH).permitAll()
                 .and().build();
     }
