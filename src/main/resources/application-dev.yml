@@ -1,0 +1,17 @@
+spring:
+  # PostgreSQL
+  datasource:
+    hikari:
+      connectionTimeout: 20000
+      maximum-pool-size: 5
+    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=qa_shopee
+    username: postgres
+    password: postgres
+  # Flyway
+  flyway:
+    url: jdbc:postgresql://localhost:5432/postgres
+    schemas: qa_shopee
+    password: postgres
+    user: postgres
+    enabled: true
+    validate-migration-naming: true
