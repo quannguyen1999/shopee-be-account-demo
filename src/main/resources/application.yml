@@ -5,11 +5,7 @@ spring:
   profiles:
     active: dev
 custom-security:
-  client-id: client
-  client-secret: secret
   issuer: http://localhost:8080
-  redirectUri: http://127.0.0.1:8080/login/oauth2/code/client
-
 logging:
   level:
     org:
