@@ -84,7 +84,6 @@ public class RegisteredClientService implements RegisteredClientRepository {
 
     @Override
     public RegisteredClient findById(String id) {
-        System.out.println("is working");
         return this.clientRepository.findById(id).map(this::toObject).orElse(null);
     }
 

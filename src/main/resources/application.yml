@@ -6,8 +6,8 @@ spring:
     active: dev
 custom-security:
   issuer: http://localhost:8080
-#logging:
-#  level:
-#    org:
-#      springframework:
-#        security: TRACE
+logging:
+  level:
+    org:
+      springframework:
+        security: TRACE
