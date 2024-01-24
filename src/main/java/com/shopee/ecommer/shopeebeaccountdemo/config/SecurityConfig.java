@@ -84,7 +84,7 @@ public class SecurityConfig {
     SecurityFilterChain appSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/css/**").permitAll() // Permit access to CSS resources
+                        .requestMatchers("/css/**", "/image/**").permitAll() // Permit access to CSS resources
                         .anyRequest().authenticated()
                 )
                 .formLogin().loginPage(DEFAULT_URL_LOGIN_PATH).permitAll()

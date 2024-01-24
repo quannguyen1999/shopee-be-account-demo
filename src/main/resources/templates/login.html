@@ -1,9 +1,8 @@
 <html xmlns:th="https://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title th:text="${title}">Home Page</title>
+    <title>Login Page</title>
     <link rel="stylesheet" th:href="@{/css/main.css}" />
-    <script src="webjars/material-design-lite/1.3.0/material.min.js"></script>
 </head>
 <body style="background-color: #fafafa;">
         <div class="sticky top-0 left-0 w-full h-16 bg-orange-600 z-50">
@@ -24,7 +23,7 @@
         </div>
         <div class="grid grid-flow-col loginPage min-h-screen -mt-20">
             <div class="col-span-1 m-auto">
-                <img src="https://dfstudio-d420.kxcdn.com/wordpress/wp-content/uploads/2019/06/digital_camera_photo-1080x675.jpg" class="m-auto" alt="">
+                <img th:src="@{/image/login-page.png}" class="m-auto" alt="">
             </div>
             <div class="col-span-1 m-auto">
                 <form name="f" th:action="@{/login}" Method="post" class="flex flex-col w-96 bg-gray-50 shadow-2xl p-5 gap-4 h-96">
