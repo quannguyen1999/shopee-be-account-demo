@@ -4,6 +4,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.shopee.ecommer.shopeebeaccountdemo.constant.PathApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,8 +36,6 @@ import java.util.stream.Collectors;
 import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 public class SecurityConfig {
-    public static final String DEFAULT_URL_LOGIN_PATH = "/login";
-
     @Value("${custom-security.issuer}")
     private String issuer;
 
@@ -49,7 +48,7 @@ public class SecurityConfig {
                 .oidc(withDefaults())
                 .and()
                 .exceptionHandling(e -> e
-                        .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint(DEFAULT_URL_LOGIN_PATH)))
+                        .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint(PathApi.LOGIN_PATH)))
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .build();
     }
@@ -62,7 +61,7 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/image/**").permitAll() // Permit access to CSS resources
                         .anyRequest().authenticated()
                 )
-                .formLogin().loginPage(DEFAULT_URL_LOGIN_PATH).permitAll()
+                .formLogin().loginPage(PathApi.LOGIN_PATH).permitAll()
                 .and().build();
     }
 
