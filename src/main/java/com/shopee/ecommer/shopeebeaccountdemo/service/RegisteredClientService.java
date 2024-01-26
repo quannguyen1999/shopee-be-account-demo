@@ -3,6 +3,7 @@ package com.shopee.ecommer.shopeebeaccountdemo.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.shopee.ecommer.shopeebeaccountdemo.entity.Client;
 import com.shopee.ecommer.shopeebeaccountdemo.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,14 +14,12 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class RegisteredClientService implements RegisteredClientRepository {
@@ -114,8 +113,8 @@ public class RegisteredClientService implements RegisteredClientRepository {
 //        Map<String, Object> clientSettingsMap = parseMap(client.getClientSettings());
 //        builder.clientSettings(ClientSettings.withSettings(clientSettingsMap).build());
 //
-//        Map<String, Object> tokenSettingsMap = parseMap(client.getTokenSettings());
-//        builder.tokenSettings(TokenSettings.withSettings(tokenSettingsMap).build());
+        Map<String, Object> tokenSettingsMap = parseMap(client.getTokenSettings());
+        builder.tokenSettings(TokenSettings.withSettings(tokenSettingsMap).build());
 
         return builder.build();
     }
@@ -144,8 +143,11 @@ public class RegisteredClientService implements RegisteredClientRepository {
 
     private Map<String, Object> parseMap(String data) {
         try {
-            return this.objectMapper.readValue(data, new TypeReference<Map<String, Object>>() {
-            });
+            ObjectMapper objectMapper = new ObjectMapper();
+            TypeReference<HashMap<String, Object>> typeReference = new TypeReference<HashMap<String, Object>>() {
+            };
+            return objectMapper.readValue(data, TypeFactory.defaultInstance().constructType(typeReference.getType()));
+
         } catch (Exception ex) {
             throw new IllegalArgumentException(ex.getMessage(), ex);
         }
