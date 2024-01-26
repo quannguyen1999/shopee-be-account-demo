@@ -11,3 +11,14 @@ logging:
     org:
       springframework:
         security: TRACE
+
+
+# Custom Token
+#  Duration durationAuthorization = Duration.ofDays(2);
+#  Duration durationToken = Duration.ofHours(1);
+#  Duration durationRefreshToken = Duration.ofHours(6);
+security:
+  duration:
+    authorization: 2
+    token: 1
+    refreshToken: 6

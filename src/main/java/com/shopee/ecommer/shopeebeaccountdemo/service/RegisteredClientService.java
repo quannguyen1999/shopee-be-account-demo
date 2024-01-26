@@ -1,28 +1,40 @@
 package com.shopee.ecommer.shopeebeaccountdemo.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.shopee.ecommer.shopeebeaccountdemo.entity.Client;
 import com.shopee.ecommer.shopeebeaccountdemo.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
+import org.springframework.security.oauth2.server.authorization.settings.ConfigurationSettingNames;
+import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import java.time.Duration;
 import java.util.*;
 
 @Service
 public class RegisteredClientService implements RegisteredClientRepository {
+
+    @Value("${security.duration.token}")
+    private Long timeToken;
+
+    @Value("${security.duration.authorization}")
+    private Long timeAuthorization;
+
+    @Value("${security.duration.refreshToken}")
+    private Long timeRefreshToken;
 
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -109,14 +121,23 @@ public class RegisteredClientService implements RegisteredClientRepository {
                                 grantTypes.add(resolveAuthorizationGrantType(grantType))))
                 .redirectUris((uris) -> uris.addAll(redirectUris))
                 .scopes((scopes) -> scopes.addAll(clientScopes));
-
-//        Map<String, Object> clientSettingsMap = parseMap(client.getClientSettings());
-//        builder.clientSettings(ClientSettings.withSettings(clientSettingsMap).build());
-//
-        Map<String, Object> tokenSettingsMap = parseMap(client.getTokenSettings());
-        builder.tokenSettings(TokenSettings.withSettings(tokenSettingsMap).build());
+        builder.tokenSettings(TokenSettings.withSettings(buildToken()).build());
 
         return builder.build();
+    }
+
+    private Map<String, Object> buildToken() {
+        Map<String, Object> tokenSettingsMap = new HashMap<>();
+        Duration durationAuthorization = Duration.ofDays(timeAuthorization);
+        Duration durationToken = Duration.ofHours(timeToken);
+        Duration durationRefreshToken = Duration.ofHours(timeRefreshToken);
+        tokenSettingsMap.put(ConfigurationSettingNames.Token.ACCESS_TOKEN_TIME_TO_LIVE, durationToken);
+        tokenSettingsMap.put(ConfigurationSettingNames.Token.AUTHORIZATION_CODE_TIME_TO_LIVE, durationAuthorization);
+        tokenSettingsMap.put(ConfigurationSettingNames.Token.ACCESS_TOKEN_FORMAT, OAuth2TokenFormat.SELF_CONTAINED);
+        tokenSettingsMap.put(ConfigurationSettingNames.Token.REFRESH_TOKEN_TIME_TO_LIVE, durationRefreshToken);
+        tokenSettingsMap.put(ConfigurationSettingNames.Token.REUSE_REFRESH_TOKENS, true);
+        tokenSettingsMap.put(ConfigurationSettingNames.Token.ID_TOKEN_SIGNATURE_ALGORITHM, SignatureAlgorithm.RS256);
+        return tokenSettingsMap;
     }
 
     private static ClientAuthenticationMethod resolveClientAuthenticationMethod(String clientAuthenticationMethod) {
@@ -139,18 +160,6 @@ public class RegisteredClientService implements RegisteredClientRepository {
             return AuthorizationGrantType.REFRESH_TOKEN;
         }
         return new AuthorizationGrantType(authorizationGrantType);              // Custom authorization grant type
-    }
-
-    private Map<String, Object> parseMap(String data) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            TypeReference<HashMap<String, Object>> typeReference = new TypeReference<HashMap<String, Object>>() {
-            };
-            return objectMapper.readValue(data, TypeFactory.defaultInstance().constructType(typeReference.getType()));
-
-        } catch (Exception ex) {
-            throw new IllegalArgumentException(ex.getMessage(), ex);
-        }
     }
 
     @Override
