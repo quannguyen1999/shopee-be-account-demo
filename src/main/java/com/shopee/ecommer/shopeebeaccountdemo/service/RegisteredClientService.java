@@ -135,7 +135,7 @@ public class RegisteredClientService implements RegisteredClientRepository {
         tokenSettingsMap.put(ConfigurationSettingNames.Token.AUTHORIZATION_CODE_TIME_TO_LIVE, durationAuthorization);
         tokenSettingsMap.put(ConfigurationSettingNames.Token.ACCESS_TOKEN_FORMAT, OAuth2TokenFormat.SELF_CONTAINED);
         tokenSettingsMap.put(ConfigurationSettingNames.Token.REFRESH_TOKEN_TIME_TO_LIVE, durationRefreshToken);
-        tokenSettingsMap.put(ConfigurationSettingNames.Token.REUSE_REFRESH_TOKENS, true);
+        tokenSettingsMap.put(ConfigurationSettingNames.Token.REUSE_REFRESH_TOKENS, false);
         tokenSettingsMap.put(ConfigurationSettingNames.Token.ID_TOKEN_SIGNATURE_ALGORITHM, SignatureAlgorithm.RS256);
         return tokenSettingsMap;
     }
