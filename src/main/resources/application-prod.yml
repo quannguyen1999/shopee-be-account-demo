@@ -15,3 +15,7 @@ spring:
     user: postgres
     enabled: true
     validate-migration-naming: true
+
+jwt:
+  secret:
+    key: yVMO9QNJ5i2IBZLZCuJPGg==

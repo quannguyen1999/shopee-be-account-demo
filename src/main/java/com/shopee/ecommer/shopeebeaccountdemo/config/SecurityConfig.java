@@ -9,13 +9,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.MediaType;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.encrypt.AesBytesEncryptor;
+import org.springframework.security.crypto.encrypt.BytesEncryptor;
+import org.springframework.security.crypto.keygen.BytesKeyGenerator;
+import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
@@ -27,15 +30,17 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Base64;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -71,13 +76,8 @@ public class SecurityConfig {
                 .getConfigurer(OAuth2AuthorizationServerConfigurer.class)
                 .oidc(withDefaults())
                 .and()
-                .exceptionHandling((exceptions) -> exceptions
-                        .defaultAuthenticationEntryPointFor(
-                                new LoginUrlAuthenticationEntryPoint("/login"),
-                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
-                        )
-                )
-                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
+                .exceptionHandling(e -> e.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint(PathApi.LOGIN_PATH)))
+                .oauth2ResourceServer((resourceServer) -> resourceServer.jwt(Customizer.withDefaults()))
                 .build();
     }
 
@@ -86,21 +86,18 @@ public class SecurityConfig {
     SecurityFilterChain appSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(authorize -> authorize
-                                .requestMatchers("/css/**", "/image/**", "/login/**",
+                                .requestMatchers("/css/**", "/image/**",
                                         "/registration", "/authenticator", "/security-question"
-
                                 )
                                 .permitAll() // Permit access to CSS resources
 //                        .requestMatchers("/registration", "/authenticator").hasAuthority("ROLE_MFA_REQUIRED")
 //                        .requestMatchers("/security-question").hasAuthority("ROLE_SECURITY_QUESTION_REQUIRED")
                                 .anyRequest().authenticated()
                 )
-                .formLogin(
-                        formLogin -> formLogin
-                                .loginPage(PathApi.LOGIN_PATH)
-                                .successHandler(new MFAHandler("/authenticator", "ROLE_MFA_REQUIRED"))
-//                                .failureHandler(new SimpleUrlAuthenticationFailureHandler("/login?error"))
-                ).build();
+                .formLogin().loginPage(PathApi.LOGIN_PATH).permitAll().successHandler(
+                        new MFAHandler("/authenticator", "ROLE_MFA_REQUIRED")
+                )
+                .and().build();
     }
 
     @Bean
@@ -112,6 +109,13 @@ public class SecurityConfig {
     @Bean
     BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    BytesEncryptor bytesEncryptor(@Value("${jwt.secret.key}") String secret) {
+        SecretKey secretKey = new SecretKeySpec(Base64.getDecoder().decode(secret.trim()), "AES");
+        BytesKeyGenerator ivGenerator = KeyGenerators.secureRandom(12);
+        return new AesBytesEncryptor(secretKey, ivGenerator, AesBytesEncryptor.CipherAlgorithm.GCM);
     }
 
     @Bean

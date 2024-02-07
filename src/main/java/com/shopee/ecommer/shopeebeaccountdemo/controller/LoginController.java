@@ -4,6 +4,7 @@ import com.shopee.ecommer.shopeebeaccountdemo.config.MFAHandler;
 import com.shopee.ecommer.shopeebeaccountdemo.constant.PathApi;
 import com.shopee.ecommer.shopeebeaccountdemo.entity.Account;
 import com.shopee.ecommer.shopeebeaccountdemo.entity.CustomUserDetails;
+import com.shopee.ecommer.shopeebeaccountdemo.service.UserDetailConfigService;
 import com.shopee.ecommer.shopeebeaccountdemo.utils.AuthenticationUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,16 +44,20 @@ public class LoginController {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final UserDetailConfigService userDetailConfigService;
+
 
     private String generatedCode = "";
     private String base32Secret = "";
     private String keyId = "";
 
     public LoginController(AuthenticationSuccessHandler authenticationSuccessHandler,
-                           PasswordEncoder passwordEncoder
+                           PasswordEncoder passwordEncoder,
+                           UserDetailConfigService userDetailConfigService
     ) {
         this.authenticationSuccessHandler = authenticationSuccessHandler;
         this.passwordEncoder = passwordEncoder;
+        this.userDetailConfigService = userDetailConfigService;
     }
 
     @GetMapping(PathApi.LOGIN_PATH)
@@ -74,6 +79,25 @@ public class LoginController {
         System.err.println(generatedCode);
         model.addAttribute("qrImage", AuthenticationUtil.generateQrImageUrl(keyId, base32Secret));
         return "registration";
+    }
+
+    @PostMapping("/registration")
+    public void validateRegistration(@RequestParam("code") String code,
+                                     HttpServletRequest request,
+                                     HttpServletResponse response,
+                                     @CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
+        System.out.println(code);
+        System.out.println(generatedCode);
+        if (code.equalsIgnoreCase(generatedCode)) {
+            userDetailConfigService.saveUserInfoMfaRegistered(base32Secret, getUser(context).getUsername());
+            if (!getUser(context).getSecurityQuestionEnabled()) {
+                this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
+                return;
+            }
+            this.securityQuestionSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
+            return;
+        }
+        this.authenticatorFailureHandler.onAuthenticationFailure(request, response, new BadCredentialsException("bad credentials"));
     }
 
     @GetMapping("/authenticator")

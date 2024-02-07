@@ -10,10 +10,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.codec.Hex;
+import org.springframework.security.crypto.encrypt.BytesEncryptor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -24,6 +27,8 @@ public class UserDetailConfigService implements UserDetailsService {
     private final AccountRepository accountRepository;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    private final BytesEncryptor bytesEncryptor;
 
     @Transactional
     @Override
@@ -42,6 +47,14 @@ public class UserDetailConfigService implements UserDetailsService {
                         account.getSecurityQuestion(), account.getSecurityAnswer(), account.getMfaSecret(),
                         account.getMfaKeyId(), account.getMfaEnabled(), account.getMfaRegistered(), account.getSecurityQuestionEnabled(),
                         account.getRoleAccountList()));
+    }
+
+    public void saveUserInfoMfaRegistered(String secret, String username) {
+        String encryptedSecret = new String(Hex.encode(this.bytesEncryptor.encrypt(secret.getBytes(StandardCharsets.UTF_8))));
+        Account account = accountRepository.findByUsername(username);
+        account.setMfaSecret(encryptedSecret);
+        account.setMfaRegistered(true);
+        accountRepository.save(account);
     }
 
 }
