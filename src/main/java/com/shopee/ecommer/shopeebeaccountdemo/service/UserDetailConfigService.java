@@ -1,11 +1,11 @@
 package com.shopee.ecommer.shopeebeaccountdemo.service;
 
 import com.shopee.ecommer.shopeebeaccountdemo.entity.Account;
+import com.shopee.ecommer.shopeebeaccountdemo.entity.CustomUserDetails;
 import com.shopee.ecommer.shopeebeaccountdemo.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -34,8 +34,14 @@ public class UserDetailConfigService implements UserDetailsService {
         }
         Collection<GrantedAuthority> authorities = new HashSet<>();
         account.getRoleAccountList().forEach(auth -> authorities.add(new SimpleGrantedAuthority(auth.getCode())));
-        return new User(account.getUsername(), account.getPassword(), account.getIsActive(),
-                true, true, true, authorities);
+//        return new User(account.getUsername(), account.getPassword(), account.getIsActive(),
+//                true, true, true, authorities);
+        return new CustomUserDetails(
+                new Account(account.getId(), account.getUsername(), account.getPassword(), account.getBirthday(),
+                        account.getGender(), account.getEmail(), account.getAvatar(), account.getIsActive(),
+                        account.getSecurityQuestion(), account.getSecurityAnswer(), account.getMfaSecret(),
+                        account.getMfaKeyId(), account.getMfaEnabled(), account.getMfaRegistered(), account.getSecurityQuestionEnabled(),
+                        account.getRoleAccountList()));
     }
 
 }
