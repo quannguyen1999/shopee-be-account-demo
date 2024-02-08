@@ -1,6 +1,6 @@
 package com.shopee.ecommer.shopeebeaccountdemo.controller;
 
-import com.shopee.ecommer.shopeebeaccountdemo.config.MFAHandler;
+import com.shopee.ecommer.shopeebeaccountdemo.config.MFAHandlerSuccess;
 import com.shopee.ecommer.shopeebeaccountdemo.constant.PathApi;
 import com.shopee.ecommer.shopeebeaccountdemo.entity.Account;
 import com.shopee.ecommer.shopeebeaccountdemo.entity.CustomUserDetails;
@@ -14,7 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
@@ -31,18 +30,15 @@ import java.security.GeneralSecurityException;
 
 @Controller
 public class LoginController {
-    private final SecurityContextRepository securityContextRepository =
-            new HttpSessionSecurityContextRepository();
+    private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
     private final AuthenticationFailureHandler authenticatorFailureHandler =
             new SimpleUrlAuthenticationFailureHandler("/authenticator?error");
     private final AuthenticationFailureHandler securityQuestionFailureHandler =
             new SimpleUrlAuthenticationFailureHandler("/security-question?error");
     private final AuthenticationSuccessHandler securityQuestionSuccessHandler =
-            new MFAHandler("/security-question", "ROLE_SECURITY_QUESTION_REQUIRED");
+            new MFAHandlerSuccess("/security-question", "ROLE_SECURITY_QUESTION_REQUIRED");
 
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
-
-    private final PasswordEncoder passwordEncoder;
 
     private final UserDetailConfigService userDetailConfigService;
 
@@ -52,17 +48,21 @@ public class LoginController {
     private String keyId = "";
 
     public LoginController(AuthenticationSuccessHandler authenticationSuccessHandler,
-                           PasswordEncoder passwordEncoder,
                            UserDetailConfigService userDetailConfigService
     ) {
         this.authenticationSuccessHandler = authenticationSuccessHandler;
-        this.passwordEncoder = passwordEncoder;
         this.userDetailConfigService = userDetailConfigService;
     }
 
     @GetMapping(PathApi.LOGIN_PATH)
     public String login() {
         return "login";
+    }
+
+
+    @GetMapping("/xx")
+    public void xx() {
+        System.out.println("fuck this");
     }
 
     @GetMapping("/registration")
@@ -103,9 +103,9 @@ public class LoginController {
     @GetMapping("/authenticator")
     public String authenticator(
             @CurrentSecurityContext SecurityContext context) {
-        if (!getUser(context).getMfaRegistered()) {
-            return "redirect:registration";
-        }
+//        if (!getUser(context).getMfaRegistered()) {
+//            return "redirect:registration";
+//        }
         return "authenticator";
     }
 

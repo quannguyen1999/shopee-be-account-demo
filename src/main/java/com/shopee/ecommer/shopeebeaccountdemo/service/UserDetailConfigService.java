@@ -39,8 +39,6 @@ public class UserDetailConfigService implements UserDetailsService {
         }
         Collection<GrantedAuthority> authorities = new HashSet<>();
         account.getRoleAccountList().forEach(auth -> authorities.add(new SimpleGrantedAuthority(auth.getCode())));
-//        return new User(account.getUsername(), account.getPassword(), account.getIsActive(),
-//                true, true, true, authorities);
         return new CustomUserDetails(
                 new Account(account.getId(), account.getUsername(), account.getPassword(), account.getBirthday(),
                         account.getGender(), account.getEmail(), account.getAvatar(), account.getIsActive(),

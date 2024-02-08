@@ -17,7 +17,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import java.io.IOException;
 
 
-public class MFAHandler implements AuthenticationSuccessHandler {
+public class MFAHandlerSuccess implements AuthenticationSuccessHandler {
 
 	private final SecurityContextRepository securityContextRepository =
 			new HttpSessionSecurityContextRepository();
@@ -27,7 +27,7 @@ public class MFAHandler implements AuthenticationSuccessHandler {
 	private final AuthenticationSuccessHandler authenticationSuccessHandler;
 	private final String authority;
 
-	public MFAHandler(String successUrl, String authority) {
+	public MFAHandlerSuccess(String successUrl, String authority) {
 		SimpleUrlAuthenticationSuccessHandler authenticationSuccessHandler =
 				new SimpleUrlAuthenticationSuccessHandler(successUrl);
 		authenticationSuccessHandler.setAlwaysUseDefaultTargetUrl(true);

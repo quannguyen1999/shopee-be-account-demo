@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.shopee.ecommer.shopeebeaccountdemo.constant.PathApi;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +13,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -49,9 +51,12 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 public class SecurityConfig {
+
+//    @Autowired
+//    CustomAuthenticationFailed customAuthenticationFailed;
+
     @Value("${custom-security.issuer}")
     private String issuer;
-
 
     @Bean
     public CorsFilter corsFilter() {
@@ -76,7 +81,10 @@ public class SecurityConfig {
                 .getConfigurer(OAuth2AuthorizationServerConfigurer.class)
                 .oidc(withDefaults())
                 .and()
-                .exceptionHandling(e -> e.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint(PathApi.LOGIN_PATH)))
+                .exceptionHandling(e -> e.authenticationEntryPoint(new
+                        LoginUrlAuthenticationEntryPoint(PathApi.LOGIN_PATH))
+
+                )
                 .oauth2ResourceServer((resourceServer) -> resourceServer.jwt(Customizer.withDefaults()))
                 .build();
     }
@@ -86,17 +94,20 @@ public class SecurityConfig {
     SecurityFilterChain appSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(authorize -> authorize
-                                .requestMatchers("/css/**", "/image/**",
-                                        "/registration", "/authenticator", "/security-question"
+                                .requestMatchers("/css/**",
+                                        "/image/**",
+                                        "/registration",
+                                        "/authenticator",
+                                        "/security-question"
                                 )
                                 .permitAll() // Permit access to CSS resources
-//                        .requestMatchers("/registration", "/authenticator").hasAuthority("ROLE_MFA_REQUIRED")
-//                        .requestMatchers("/security-question").hasAuthority("ROLE_SECURITY_QUESTION_REQUIRED")
-                                .anyRequest().authenticated()
+                              .anyRequest().authenticated()
                 )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin().loginPage(PathApi.LOGIN_PATH).permitAll().successHandler(
-                        new MFAHandler("/authenticator", "ROLE_MFA_REQUIRED")
+                        new MFAHandlerSuccess("/authenticator", "ROLE_MFA_REQUIRED")
                 )
+//                .failureHandler(customAuthenticationFailed)
                 .and().build();
     }
 
