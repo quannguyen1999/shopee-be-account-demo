@@ -5,6 +5,9 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.shopee.ecommer.shopeebeaccountdemo.constant.PathApi;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSessionEvent;
+import jakarta.servlet.http.HttpSessionListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -151,6 +154,25 @@ public class SecurityConfig {
             throw new IllegalStateException(ex);
         }
         return keyPair;
+    }
+
+    //Set timeout session
+    @Bean
+    public HttpSessionListener httpSessionListener() {
+        return new HttpSessionListener() {
+            @Override
+            public void sessionCreated(HttpSessionEvent event) {
+                HttpSession session = event.getSession();
+                // Set the session timeout to 30 seconds
+                session.setMaxInactiveInterval(5);
+            }
+
+            @Override
+            public void sessionDestroyed(HttpSessionEvent event) {
+                // Handle session destroyed event if needed
+                event.getSession().invalidate();
+            }
+        };
     }
 
 
