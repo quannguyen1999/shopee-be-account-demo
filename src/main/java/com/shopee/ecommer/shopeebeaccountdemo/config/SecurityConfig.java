@@ -4,16 +4,21 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.shopee.ecommer.shopeebeaccountdemo.constant.ConstantUtil;
 import com.shopee.ecommer.shopeebeaccountdemo.constant.PathApi;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -32,12 +37,16 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
@@ -47,6 +56,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.shopee.ecommer.shopeebeaccountdemo.constant.PathApi.AUTHORIZE_PATH;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
@@ -71,10 +81,11 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order(1)
+    @Order(Ordered.HIGHEST_PRECEDENCE)
     SecurityFilterChain asSecurityFilterChain(HttpSecurity http) throws Exception {
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
         return http
+                .addFilterBefore(new SessionInvalidationFilter(), AbstractPreAuthenticatedProcessingFilter.class)
                 .cors()
                 .and()
                 .csrf(AbstractHttpConfigurer::disable)
@@ -83,7 +94,6 @@ public class SecurityConfig {
                 .and()
                 .exceptionHandling(e -> e.authenticationEntryPoint(new
                         LoginUrlAuthenticationEntryPoint(PathApi.LOGIN_PATH))
-
                 )
                 .oauth2ResourceServer((resourceServer) -> resourceServer.jwt(Customizer.withDefaults()))
                 .build();
@@ -94,21 +104,39 @@ public class SecurityConfig {
     SecurityFilterChain appSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(authorize -> authorize
-                                .requestMatchers("/css/**",
-                                        "/image/**",
-                                        "/registration",
-                                        "/authenticator",
-                                        "/security-question"
-                                )
-                                .permitAll() // Permit access to CSS resources
-                              .anyRequest().authenticated()
+                        .requestMatchers("/css/**",
+                                "/image/**",
+                                "/registration",
+                                "/authenticator",
+                                "/security-question"
+                        )
+                        .permitAll() // Permit access to CSS resources
+                        .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin().loginPage(PathApi.LOGIN_PATH).permitAll().successHandler(
-                        new MFAHandlerSuccess("/authenticator", "ROLE_MFA_REQUIRED")
+                        new MFAHandlerSuccess(PathApi.AUTHENTICATOR_PATH, "ROLE_MFA_REQUIRED")
                 )
-//                .failureHandler(customAuthenticationFailed)
                 .and().build();
+    }
+
+    public class SessionInvalidationFilter extends OncePerRequestFilter {
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+            if (request.getRequestURI().equals(AUTHORIZE_PATH)) {
+                Object result = request.getSession().getAttribute(ConstantUtil.ATTRIBUTE_MFA);
+                if (ObjectUtils.isEmpty(result)) {
+                    // Invalidate session if the request is to the authorization endpoint
+                    HttpSession session = request.getSession(false);
+                    if (session != null) {
+                        session.invalidate();
+                    }
+                } else {
+                    request.getSession().removeAttribute(ConstantUtil.ATTRIBUTE_MFA);
+                }
+            }
+            filterChain.doFilter(request, response);
+        }
     }
 
     @Bean
@@ -133,7 +161,7 @@ public class SecurityConfig {
     AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder()
                 .issuer(issuer)
-                .authorizationEndpoint("/oauth2/authorize")
+                .authorizationEndpoint(AUTHORIZE_PATH)
                 .tokenEndpoint("/oauth2/token")
                 .tokenIntrospectionEndpoint("/oauth2/introspect")
                 .tokenRevocationEndpoint("/oauth2/revoke")

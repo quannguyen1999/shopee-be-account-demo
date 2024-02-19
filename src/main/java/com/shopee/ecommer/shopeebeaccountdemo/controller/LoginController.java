@@ -1,9 +1,10 @@
 package com.shopee.ecommer.shopeebeaccountdemo.controller;
 
-import com.shopee.ecommer.shopeebeaccountdemo.config.MFAHandlerSuccess;
+import com.shopee.ecommer.shopeebeaccountdemo.constant.ConstantUtil;
 import com.shopee.ecommer.shopeebeaccountdemo.constant.PathApi;
 import com.shopee.ecommer.shopeebeaccountdemo.entity.Account;
 import com.shopee.ecommer.shopeebeaccountdemo.entity.CustomUserDetails;
+import com.shopee.ecommer.shopeebeaccountdemo.service.MFATokenService;
 import com.shopee.ecommer.shopeebeaccountdemo.service.UserDetailConfigService;
 import com.shopee.ecommer.shopeebeaccountdemo.utils.AuthenticationUtil;
 import jakarta.servlet.ServletException;
@@ -33,25 +34,22 @@ public class LoginController {
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
     private final AuthenticationFailureHandler authenticatorFailureHandler =
             new SimpleUrlAuthenticationFailureHandler("/authenticator?error");
-    private final AuthenticationFailureHandler securityQuestionFailureHandler =
-            new SimpleUrlAuthenticationFailureHandler("/security-question?error");
-    private final AuthenticationSuccessHandler securityQuestionSuccessHandler =
-            new MFAHandlerSuccess("/security-question", "ROLE_SECURITY_QUESTION_REQUIRED");
+
+    private final MFATokenService mfaTokenService;
 
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
-
     private final UserDetailConfigService userDetailConfigService;
-
-
     private String generatedCode = "";
     private String base32Secret = "";
     private String keyId = "";
 
     public LoginController(AuthenticationSuccessHandler authenticationSuccessHandler,
-                           UserDetailConfigService userDetailConfigService
+                           UserDetailConfigService userDetailConfigService,
+                           MFATokenService mfaTokenService
     ) {
         this.authenticationSuccessHandler = authenticationSuccessHandler;
         this.userDetailConfigService = userDetailConfigService;
+        this.mfaTokenService = mfaTokenService;
     }
 
     @GetMapping(PathApi.LOGIN_PATH)
@@ -59,15 +57,10 @@ public class LoginController {
         return "login";
     }
 
-
-    @GetMapping("/xx")
-    public void xx() {
-        System.out.println("fuck this");
-    }
-
     @GetMapping("/registration")
     public String registration(
             Model model,
+            HttpServletRequest request,
             @CurrentSecurityContext SecurityContext context) {
         base32Secret = AuthenticationUtil.generateSecret();
         keyId = getUser(context).getMfaKeyId();
@@ -76,7 +69,6 @@ public class LoginController {
         } catch (GeneralSecurityException e) {
             e.printStackTrace();
         }
-        System.err.println(generatedCode);
         model.addAttribute("qrImage", AuthenticationUtil.generateQrImageUrl(keyId, base32Secret));
         return "registration";
     }
@@ -86,15 +78,10 @@ public class LoginController {
                                      HttpServletRequest request,
                                      HttpServletResponse response,
                                      @CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
-        System.out.println(code);
-        System.out.println(generatedCode);
         if (code.equalsIgnoreCase(generatedCode)) {
             userDetailConfigService.saveUserInfoMfaRegistered(base32Secret, getUser(context).getUsername());
-            if (!getUser(context).getSecurityQuestionEnabled()) {
-                this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
-                return;
-            }
-            this.securityQuestionSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
+            request.getSession().setAttribute(ConstantUtil.ATTRIBUTE_MFA, "true");
+            this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
             return;
         }
         this.authenticatorFailureHandler.onAuthenticationFailure(request, response, new BadCredentialsException("bad credentials"));
@@ -103,9 +90,9 @@ public class LoginController {
     @GetMapping("/authenticator")
     public String authenticator(
             @CurrentSecurityContext SecurityContext context) {
-//        if (!getUser(context).getMfaRegistered()) {
-//            return "redirect:registration";
-//        }
+        if (!getUser(context).getMfaRegistered()) {
+            return "redirect:registration";
+        }
         return "authenticator";
     }
 
@@ -115,36 +102,12 @@ public class LoginController {
             HttpServletRequest request,
             HttpServletResponse response,
             @CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
-        if (code.equals(getUser(context).getMfaSecret())) {
-            if (!getUser(context).getSecurityQuestionEnabled()) {
-                this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
-                return;
-            }
-            this.securityQuestionSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
-            return;
-        }
-        this.authenticatorFailureHandler.onAuthenticationFailure(request, response, new BadCredentialsException("bad credentials"));
-    }
-
-    @GetMapping("/security-question")
-    public String securityQuestion(
-            @CurrentSecurityContext SecurityContext context,
-            Model model) {
-        model.addAttribute("question", getUser(context).getSecurityQuestion());
-        return "security-question";
-    }
-
-    @PostMapping("/security-question")
-    public void validateSecurityQuestion(
-            @RequestParam("answer") String answer,
-            HttpServletRequest request,
-            HttpServletResponse response,
-            @CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
-        if (answer.equalsIgnoreCase(getUser(context).getSecurityAnswer())) {
+        if (code.equals("1000")) {
+            request.getSession().setAttribute(ConstantUtil.ATTRIBUTE_MFA, "true");
             this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
             return;
         }
-        this.securityQuestionFailureHandler.onAuthenticationFailure(request, response, new BadCredentialsException("bad credentials"));
+        this.authenticatorFailureHandler.onAuthenticationFailure(request, response, new BadCredentialsException("bad credentials"));
     }
 
     private Authentication getAuthentication(
