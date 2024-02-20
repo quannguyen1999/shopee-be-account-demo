@@ -20,8 +20,9 @@ public class Oauth2Impl implements Oauth2Service {
     @Override
     public String registerNewOtpAndGetQrCode(SecurityContext context) throws QrGenerationException {
         String secretKey = mfaTokenService.generateSecretKey();
-        accountRepository.updateMfaSecretByUsername(secretKey, getAccount(context).getUsername());
-        return mfaTokenService.getQRCode(secretKey);
+        String userName = getAccount(context).getUsername();
+        accountRepository.updateMfaSecretByUsername(secretKey, userName);
+        return mfaTokenService.getQRCode(secretKey, userName);
     }
 
     @Override

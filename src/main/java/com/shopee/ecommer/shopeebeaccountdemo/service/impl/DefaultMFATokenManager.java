@@ -31,8 +31,8 @@ public class DefaultMFATokenManager implements MFATokenService {
     }
 
     @Override
-    public String getQRCode(String secret) throws QrGenerationException {
-        QrData data = new QrData.Builder().label("MFA")
+    public String getQRCode(String secret, String username) throws QrGenerationException {
+        QrData data = new QrData.Builder().label(username)
                 .secret(secret)
                 .issuer("Ecommerce")
                 .algorithm(HashingAlgorithm.SHA256)
