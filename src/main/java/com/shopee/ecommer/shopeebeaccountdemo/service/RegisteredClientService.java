@@ -4,9 +4,7 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shopee.ecommer.shopeebeaccountdemo.entity.Client;
 import com.shopee.ecommer.shopeebeaccountdemo.repository.ClientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -35,9 +33,6 @@ public class RegisteredClientService implements RegisteredClientRepository {
 
     @Value("${security.duration.refreshToken}")
     private Long timeRefreshToken;
-
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     private final ClientRepository clientRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
