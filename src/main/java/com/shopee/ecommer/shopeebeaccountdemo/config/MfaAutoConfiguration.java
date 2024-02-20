@@ -19,13 +19,13 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnClass(TotpInfo.class)
-@EnableConfigurationProperties(TotpProperties.class)
-public class TotpAutoConfiguration {
+@EnableConfigurationProperties(MfaProperties.class)
+public class MfaAutoConfiguration {
 
-    private TotpProperties props;
+    private MfaProperties props;
 
     @Autowired
-    public TotpAutoConfiguration(TotpProperties props) {
+    public MfaAutoConfiguration(MfaProperties props) {
         this.props = props;
     }
 

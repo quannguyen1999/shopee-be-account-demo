@@ -34,7 +34,7 @@ public class DefaultMFATokenManager implements MFATokenService {
     public String getQRCode(String secret) throws QrGenerationException {
         QrData data = new QrData.Builder().label("MFA")
                 .secret(secret)
-                .issuer("Java Development Journal")
+                .issuer("Ecommerce")
                 .algorithm(HashingAlgorithm.SHA256)
                 .digits(6)
                 .period(30)

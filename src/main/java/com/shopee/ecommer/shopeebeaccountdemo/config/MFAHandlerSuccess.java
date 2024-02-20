@@ -1,5 +1,6 @@
 package com.shopee.ecommer.shopeebeaccountdemo.config;
 
+import com.shopee.ecommer.shopeebeaccountdemo.constant.ConstantUtil;
 import com.shopee.ecommer.shopeebeaccountdemo.entity.CustomUserDetails;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,6 +40,8 @@ public class MFAHandlerSuccess implements AuthenticationSuccessHandler {
 		if (authentication instanceof UsernamePasswordAuthenticationToken) {
 			CustomUserDetails userdetails = (CustomUserDetails) authentication.getPrincipal();
 			if (!userdetails.getUser().getMfaEnabled()) {
+				//if mfa not enable, we will set attribute mfa true to allow continue filter
+				request.getSession().setAttribute(ConstantUtil.ATTRIBUTE_MFA, Boolean.TRUE);
 				mfaNotEnabled.onAuthenticationSuccess(request, response, authentication);
 				return;
 			}

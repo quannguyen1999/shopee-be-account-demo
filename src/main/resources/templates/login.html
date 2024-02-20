@@ -27,8 +27,10 @@
                       class="flex flex-col w-96 bg-gray-50 shadow-2xl p-5 gap-4 h-96">
                     <h1 class="text-center font-bold leading-7 text-xl">Đăng Nhập</h1>
                     <span class="flex flex-row">
-                        <i class="fas fa-user m-auto" style="padding:10px;--tw-bg-opacity: 1; background-color: rgb(234 88 12 / var(--tw-bg-opacity));"></i>
-                        <input type="text" style="padding-left:6px;" class="w-full h-12" id="username" name="username"
+                        <i class="fas fa-user m-auto"
+                           style="color:white;padding:10px;--tw-bg-opacity: 1; background-color: rgb(234 88 12 / var(--tw-bg-opacity));"></i>
+                        <input type="text" style="padding-left:6px;outline:none;" class="w-full h-12" id="username"
+                               name="username"
                                placeholder="Enter username"/>
                     </span>
                     <div th:if="${param.error}" class="alert alert-error" style="color:red;">
@@ -38,8 +40,10 @@
                         Bạn đã được đăng xuất.
                     </div>
                     <span class="flex flex-row">
-                           <i class="fas fa-lock m-auto" style="padding:10px;--tw-bg-opacity: 1; background-color: rgb(234 88 12 / var(--tw-bg-opacity));"></i>
-                        <input type="password" id="password" name="password" style="padding-left:6px;"  class="w-full h-10" placeholder="Enter password"/>
+                           <i class="fas fa-lock m-auto"
+                              style="color:white;padding:10px;--tw-bg-opacity: 1; background-color: rgb(234 88 12 / var(--tw-bg-opacity));"></i>
+                        <input type="password" id="password" name="password" style="padding-left:6px;outline:none;"
+                               class="w-full h-10" placeholder="Enter password"/>
                     </span>
                     <button class="w-full h-9 bg-orange-600 text-white shadow-md">Submit</button>
                     <div class="text-center mt-10">

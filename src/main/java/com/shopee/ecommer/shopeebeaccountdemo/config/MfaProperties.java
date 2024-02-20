@@ -4,7 +4,7 @@ package com.shopee.ecommer.shopeebeaccountdemo.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "totp")
-public class TotpProperties {
+public class MfaProperties {
 
     private static final int DEFAULT_SECRET_LENGTH = 32;
     private static final int DEFAULT_CODE_LENGTH = 6;
