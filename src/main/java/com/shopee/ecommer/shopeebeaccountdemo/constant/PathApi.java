@@ -6,4 +6,7 @@ public interface PathApi {
     String AUTHENTICATOR_PATH = "/authenticator";
 
     String AUTHORIZE_PATH = "/oauth2/authorize";
+
+    String REGISTRATION_PATH = "/registration";
+
 }

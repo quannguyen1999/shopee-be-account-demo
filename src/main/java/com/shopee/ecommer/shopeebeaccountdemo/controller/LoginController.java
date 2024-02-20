@@ -4,9 +4,9 @@ import com.shopee.ecommer.shopeebeaccountdemo.constant.ConstantUtil;
 import com.shopee.ecommer.shopeebeaccountdemo.constant.PathApi;
 import com.shopee.ecommer.shopeebeaccountdemo.entity.Account;
 import com.shopee.ecommer.shopeebeaccountdemo.entity.CustomUserDetails;
-import com.shopee.ecommer.shopeebeaccountdemo.service.MFATokenService;
+import com.shopee.ecommer.shopeebeaccountdemo.service.Oauth2Service;
 import com.shopee.ecommer.shopeebeaccountdemo.service.UserDetailConfigService;
-import com.shopee.ecommer.shopeebeaccountdemo.utils.AuthenticationUtil;
+import dev.samstevens.totp.exceptions.QrGenerationException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,7 +27,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
-import java.security.GeneralSecurityException;
+
+import static com.shopee.ecommer.shopeebeaccountdemo.constant.PathApi.AUTHENTICATOR_PATH;
+import static com.shopee.ecommer.shopeebeaccountdemo.constant.PathApi.REGISTRATION_PATH;
 
 @Controller
 public class LoginController {
@@ -35,21 +37,18 @@ public class LoginController {
     private final AuthenticationFailureHandler authenticatorFailureHandler =
             new SimpleUrlAuthenticationFailureHandler("/authenticator?error");
 
-    private final MFATokenService mfaTokenService;
+    private final Oauth2Service oauth2Service;
 
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
     private final UserDetailConfigService userDetailConfigService;
-    private String generatedCode = "";
-    private String base32Secret = "";
-    private String keyId = "";
 
     public LoginController(AuthenticationSuccessHandler authenticationSuccessHandler,
                            UserDetailConfigService userDetailConfigService,
-                           MFATokenService mfaTokenService
+                           Oauth2Service oauth2Service
     ) {
         this.authenticationSuccessHandler = authenticationSuccessHandler;
         this.userDetailConfigService = userDetailConfigService;
-        this.mfaTokenService = mfaTokenService;
+        this.oauth2Service = oauth2Service;
     }
 
     @GetMapping(PathApi.LOGIN_PATH)
@@ -57,37 +56,30 @@ public class LoginController {
         return "login";
     }
 
-    @GetMapping("/registration")
+    @GetMapping(REGISTRATION_PATH)
     public String registration(
             Model model,
             HttpServletRequest request,
-            @CurrentSecurityContext SecurityContext context) {
-        base32Secret = AuthenticationUtil.generateSecret();
-        keyId = getUser(context).getMfaKeyId();
-        try {
-            generatedCode = AuthenticationUtil.getCode(base32Secret);
-        } catch (GeneralSecurityException e) {
-            e.printStackTrace();
-        }
-        model.addAttribute("qrImage", AuthenticationUtil.generateQrImageUrl(keyId, base32Secret));
+            @CurrentSecurityContext SecurityContext context) throws QrGenerationException {
+        model.addAttribute("qrImage", oauth2Service.registerNewOtpAndGetQrCode(context));
         return "registration";
     }
 
-    @PostMapping("/registration")
+    @PostMapping(REGISTRATION_PATH)
     public void validateRegistration(@RequestParam("code") String code,
                                      HttpServletRequest request,
                                      HttpServletResponse response,
-                                     @CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
-        if (code.equalsIgnoreCase(generatedCode)) {
-            userDetailConfigService.saveUserInfoMfaRegistered(base32Secret, getUser(context).getUsername());
-            request.getSession().setAttribute(ConstantUtil.ATTRIBUTE_MFA, "true");
+                                     @CurrentSecurityContext SecurityContext context) throws ServletException, IOException, QrGenerationException {
+        if (oauth2Service.verifyRegisterOtp(context, code)) {
+            userDetailConfigService.saveUserInfoMfaRegistered(getUser(context).getUsername());
+            request.getSession().setAttribute(ConstantUtil.ATTRIBUTE_MFA, Boolean.TRUE);
             this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
             return;
         }
         this.authenticatorFailureHandler.onAuthenticationFailure(request, response, new BadCredentialsException("bad credentials"));
     }
 
-    @GetMapping("/authenticator")
+    @GetMapping(AUTHENTICATOR_PATH)
     public String authenticator(
             @CurrentSecurityContext SecurityContext context) {
         if (!getUser(context).getMfaRegistered()) {
@@ -96,14 +88,14 @@ public class LoginController {
         return "authenticator";
     }
 
-    @PostMapping("/authenticator")
+    @PostMapping(AUTHENTICATOR_PATH)
     public void validateCode(
             @RequestParam("code") String code,
             HttpServletRequest request,
             HttpServletResponse response,
-            @CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
-        if (code.equals("1000")) {
-            request.getSession().setAttribute(ConstantUtil.ATTRIBUTE_MFA, "true");
+            @CurrentSecurityContext SecurityContext context) throws ServletException, IOException, QrGenerationException {
+        if (oauth2Service.verifyRegisterOtp(context, code)) {
+            request.getSession().setAttribute(ConstantUtil.ATTRIBUTE_MFA, Boolean.TRUE);
             this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
             return;
         }

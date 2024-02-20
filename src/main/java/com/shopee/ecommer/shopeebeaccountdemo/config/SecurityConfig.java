@@ -174,9 +174,6 @@ public class SecurityConfig {
     OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer() {
         return context -> {
             Authentication principal = context.getPrincipal();
-//            if (OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue())) {
-//                context.getClaims().claim("Test", "Test Id Token");
-//            }
             if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
                 context.getClaims().claim("Test", "Test Access Token");
                 Set<String> authorities = principal.getAuthorities().stream()
