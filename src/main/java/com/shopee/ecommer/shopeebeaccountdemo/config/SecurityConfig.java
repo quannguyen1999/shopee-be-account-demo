@@ -11,6 +11,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSessionEvent;
+import jakarta.servlet.http.HttpSessionListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -214,6 +217,25 @@ public class SecurityConfig {
             throw new IllegalStateException(ex);
         }
         return keyPair;
+    }
+
+    //Set timeout session
+    @Bean
+    public HttpSessionListener httpSessionListener() {
+        return new HttpSessionListener() {
+            @Override
+            public void sessionCreated(HttpSessionEvent event) {
+                HttpSession session = event.getSession();
+                // Set the session timeout to 30 seconds
+                session.setMaxInactiveInterval(30);
+            }
+
+            @Override
+            public void sessionDestroyed(HttpSessionEvent event) {
+                // Handle session destroyed event if needed
+                event.getSession().invalidate();
+            }
+        };
     }
 
 
