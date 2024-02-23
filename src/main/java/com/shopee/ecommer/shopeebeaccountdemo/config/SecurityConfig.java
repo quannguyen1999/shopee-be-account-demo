@@ -227,7 +227,7 @@ public class SecurityConfig {
             public void sessionCreated(HttpSessionEvent event) {
                 HttpSession session = event.getSession();
                 // Set the session timeout to 30 seconds
-                session.setMaxInactiveInterval(30);
+                session.setMaxInactiveInterval(60);
             }
 
             @Override
