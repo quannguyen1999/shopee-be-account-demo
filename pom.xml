@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.0.4</version>
+		<version>3.2.3</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.shopee.ecommer</groupId>
 	<artifactId>shopee-be-account-demo</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>shopee-be-account-demo</name>
 	<description>Demo project for Spring Boot</description>
 	<packaging>jar</packaging>
