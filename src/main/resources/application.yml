@@ -2,23 +2,9 @@ server:
   port: 8070
 
 spring:
+  application:
+    name: account
   profiles:
     active: dev
-custom-security:
-  issuer: http://localhost:8070
-logging:
-  level:
-    org:
-      springframework:
-        security: TRACE
-
-
-# Custom Token
-#  Duration durationAuthorization = Duration.ofDays(2);
-#  Duration durationToken = Duration.ofHours(1);
-#  Duration durationRefreshToken = Duration.ofHours(6);
-security:
-  duration:
-    authorization: 2
-    token: 1
-    refreshToken: 6
+  config:
+    import: "configserver:http://localhost:8071/"
