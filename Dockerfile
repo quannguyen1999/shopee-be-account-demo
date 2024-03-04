@@ -5,7 +5,7 @@ FROM openjdk:17-jdk-slim
 MAINTAINER quannguyen1999
 
 #Copy file jar
-COPY target/shopee-be-account-demo-0.0.1-SNAPSHOT.jar shopee-be-account-demo-0.0.1-SNAPSHOT.jar
+COPY target/shopee-be-account-demo-latest.jar shopee-be-account-demo-latest.jar
 
 #Excute the application
-ENTRYPOINT ["java","-jar","shopee-be-account-demo-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java","-jar","shopee-be-account-demo-latest.jar"]

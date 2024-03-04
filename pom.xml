@@ -19,6 +19,12 @@
 		<spring-cloud.version>2023.0.0</spring-cloud.version>
 	</properties>
 	<dependencies>
+<!--		&lt;!&ndash;  spring cloud config central&ndash;&gt;-->
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.cloud</groupId>-->
+<!--			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>-->
+<!--		</dependency>-->
+
 		<!--  spring cloud config central-->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -142,17 +148,27 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<image>
-						<name>
-							quannguyen1999/${project.artifactId}:${project.version}
-						</name>
-					</image>
+<!--					<image>-->
+<!--						<name>-->
+<!--							quannguyen1999/${project.artifactId}:${project.version}-->
+<!--						</name>-->
+<!--					</image>-->
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.google.cloud.tools</groupId>
+				<artifactId>jib-maven-plugin</artifactId>
+				<version>3.3.2</version>
+				<configuration>
+					<to>
+						<image>quannguyen1999/${project.artifactId}:${project.version}</image>
+					</to>
 				</configuration>
 			</plugin>
 		</plugins>
