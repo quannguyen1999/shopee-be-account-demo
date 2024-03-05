@@ -31,11 +31,11 @@
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 
-		<!--  spring cloud config central-->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-config</artifactId>
 		</dependency>
+
 		<!--        Flyway-->
 		<dependency>
 			<groupId>org.flywaydb</groupId>
@@ -47,11 +47,13 @@
 			<artifactId>flyway-core</artifactId>
 		</dependency>
 
+		<!--JPA-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
+		<!--Use for login page-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
@@ -63,11 +65,15 @@
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
+
+		<!--DB -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+
+
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -102,32 +108,34 @@
 			<version>1.0.1</version>
 		</dependency>
 
+		<!--ICON -->
 		<dependency>
 			<groupId>org.webjars.bower</groupId>
 			<artifactId>material-design-lite</artifactId>
 			<version>1.3.0</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.springframework.security/spring-security-cas -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-cas</artifactId>
 			<version>6.2.1</version>
 		</dependency>
 
+		<!--ICON -->
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>font-awesome</artifactId>
 			<version>5.15.4</version>
 		</dependency>
 
-
+		<!--OTP -->
 		<dependency>
 			<groupId>com.j256.two-factor-auth</groupId>
 			<artifactId>two-factor-auth</artifactId>
 			<version>1.3</version>
 		</dependency>
 
+		<!--OTP-->
 		<dependency>
 			<groupId>dev.samstevens.totp</groupId>
 			<artifactId>totp</artifactId>
