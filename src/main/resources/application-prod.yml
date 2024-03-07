@@ -1,0 +1,37 @@
+custom-security:
+  issuer: http://localhost:8070
+
+spring:
+  # PostgreSQL
+  datasource:
+    port: 5432
+    schema: qa_shopee
+    hikari:
+      connectionTimeout: 20000
+      maximum-pool-size: 5
+    url: jdbc:postgresql://localhost:${spring.datasource.port}/postgres?currentSchema=${spring.datasource.schema}
+    username: postgres
+    password: postgres
+  # Flyway
+  flyway:
+    url: jdbc:postgresql://localhost:${spring.datasource.port}/postgres
+    schemas: ${spring.datasource.schema}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+    enabled: true
+    validate-migration-naming: true
+
+#Oauth2
+jwt:
+  secret:
+    key: yVMO9QNJ5i2IBZLZCuJPGg==
+
+#Eureka
+eureka:
+  preferIdAddress: true
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://localhost:8072/eureka/
+
