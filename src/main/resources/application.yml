@@ -1,45 +1,10 @@
+server:
+  port: 8070
+
 spring:
   application:
     name: account
   profiles:
-    active: prod
+    active: dev
   config:
     import: "optional:configserver:http://localhost:8071/"
-
-server:
-  port: 8070
-
-# Custom Token
-#  Duration durationAuthorization = Duration.ofDays(2);
-#  Duration durationToken = Duration.ofHours(1);
-#  Duration durationRefreshToken = Duration.ofHours(6);
-security:
-  duration:
-    authorization: 2
-    token: 1
-    refreshToken: 6
-
-#Config Eureka
-#Allow disabled server by call api actuator/shutdown with method post
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-  endpoint:
-    shutdown:
-      enabled: true
-  info:
-    env:
-      enabled: true
-  metrics:
-    tags:
-      application: ${spring.application.name}
-endpoints:
-  shutdown:
-    enabled: true
-info:
-  app:
-    name: "accounts"
-    description: "Shopee be account demo"
-    version: "1.0.0"
