@@ -1,5 +1,6 @@
 package com.shopee.ecommer.shopeebeaccountdemo.config;
 
+import com.google.common.collect.Lists;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
@@ -41,6 +42,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -54,9 +56,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.Base64;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.shopee.ecommer.shopeebeaccountdemo.constant.PathApi.AUTHORIZE_PATH;
@@ -67,6 +67,12 @@ public class SecurityConfig {
 
 //    @Autowired
 //    CustomAuthenticationFailed customAuthenticationFailed;
+
+    private static List<String> ALLOW_REQUEST = Arrays.asList("/css/**",
+            "/image/**",
+            "/registration",
+            "/authenticator",
+            "/security-question");
 
     @Value("${custom-security.issuer}")
     private String issuer;
@@ -86,7 +92,17 @@ public class SecurityConfig {
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
     SecurityFilterChain asSecurityFilterChain(HttpSecurity http) throws Exception {
-        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+        //CLone from OAuth2AuthorizationServerConfigurer.applyDefaultSecurity(http)
+        OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
+        RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
+
+        http.securityMatcher(endpointsMatcher)
+                .authorizeHttpRequests(authorize ->
+                        authorize.requestMatchers(ALLOW_REQUEST.toArray(new String[0]))
+                                .permitAll().anyRequest().authenticated()
+                ).csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
+                .apply(authorizationServerConfigurer);
+
         return http
                 .addFilterBefore(new SessionInvalidationFilter(), AbstractPreAuthenticatedProcessingFilter.class)
                 .cors()
@@ -107,12 +123,7 @@ public class SecurityConfig {
     SecurityFilterChain appSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/css/**",
-                                "/image/**",
-                                "/registration",
-                                "/authenticator",
-                                "/security-question"
-                        )
+                        .requestMatchers(ALLOW_REQUEST.toArray(new String[0]))
                         .permitAll() // Permit access to CSS resources
                         .anyRequest().authenticated()
                 )
