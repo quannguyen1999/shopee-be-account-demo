@@ -1,21 +1,82 @@
+custom-security:
+  issuer: http://localhost:8070
+
 spring:
   # PostgreSQL
   datasource:
+    port: 5432
+    schema: qa_shopee
     hikari:
       connectionTimeout: 20000
       maximum-pool-size: 5
-    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=qa_shopee
+    url: jdbc:postgresql://localhost:${spring.datasource.port}/postgres?currentSchema=${spring.datasource.schema}
     username: postgres
     password: postgres
   # Flyway
   flyway:
-    url: jdbc:postgresql://localhost:5432/postgres
-    schemas: qa_shopee
-    password: postgres
-    user: postgres
+    url: jdbc:postgresql://localhost:${spring.datasource.port}/postgres
+    schemas: ${spring.datasource.schema}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
     enabled: true
     validate-migration-naming: true
 
+#Oauth2
 jwt:
   secret:
     key: yVMO9QNJ5i2IBZLZCuJPGg==
+
+#Eureka
+eureka:
+  preferIdAddress: true
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://localhost:8072/eureka/
+
+#Logging
+logging:
+#  level:
+#    org:
+#      springframework:
+#        security: TRACE
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+
+
+
+# Custom Token
+#  Duration durationAuthorization = Duration.ofDays(2);
+#  Duration durationToken = Duration.ofHours(1);
+#  Duration durationRefreshToken = Duration.ofHours(6);
+security:
+  duration:
+    authorization: 2
+    token: 1
+    refreshToken: 6
+
+#Config Eureka
+#Allow disabled server by call api actuator/shutdown with method post
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    shutdown:
+      enabled: true
+  info:
+    env:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+endpoints:
+  shutdown:
+    enabled: true
+info:
+  app:
+    name: "accounts"
+    description: "Shopee be account prod"
+    version: "1.0.0"
