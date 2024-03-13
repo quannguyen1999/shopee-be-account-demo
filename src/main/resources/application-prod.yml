@@ -4,7 +4,7 @@ custom-security:
 spring:
   # PostgreSQL
   datasource:
-    port: 5432
+    port: 5431
     schema: qa_shopee
     hikari:
       connectionTimeout: 20000
