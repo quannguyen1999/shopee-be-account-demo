@@ -9,6 +9,7 @@ import com.shopee.ecommer.shopeebeaccountdemo.config.grantpassword.CustomPassord
 import com.shopee.ecommer.shopeebeaccountdemo.config.grantpassword.CustomPassordAuthenticationProvider;
 import com.shopee.ecommer.shopeebeaccountdemo.constant.ConstantUtil;
 import com.shopee.ecommer.shopeebeaccountdemo.constant.PathApi;
+import com.shopee.ecommer.shopeebeaccountdemo.entity.CustomPasswordUser;
 import com.shopee.ecommer.shopeebeaccountdemo.repository.AccountRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -140,7 +141,8 @@ public class SecurityConfig {
                 .getConfigurer(OAuth2AuthorizationServerConfigurer.class)
                 .tokenEndpoint(tokenEndpoint -> tokenEndpoint
                         .accessTokenRequestConverter(new CustomPassordAuthenticationConverter())
-                        .authenticationProvider(new CustomPassordAuthenticationProvider(authorizationService(), tokenGenerator(), accountRepository, passwordEncoder()))
+                        .authenticationProvider(new CustomPassordAuthenticationProvider(authorizationService(),
+                                tokenGenerator(), accountRepository, passwordEncoder(), tokenCustomizer()))
                         .accessTokenRequestConverters(getConverters())
                         .authenticationProviders(getProviders()))
                 .oidc(withDefaults())
@@ -238,14 +240,26 @@ public class SecurityConfig {
     @Bean
     OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer() {
         return context -> {
+            //Init
+            Set<String> authorities;
+            String username;
+
             Authentication principal = context.getPrincipal();
-            if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
-                context.getClaims().claim("Test", "Test Access Token");
-                Set<String> authorities = principal.getAuthorities().stream()
+            CustomPasswordUser user = principal.getDetails() instanceof CustomPasswordUser ? (CustomPasswordUser) principal.getDetails() : null;
+            context.getClaims().claim("Test", "Test Access Token");
+
+            if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType()) && ObjectUtils.isEmpty(user)) {
+                authorities = principal.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
-                context.getClaims().claim("authorities", authorities)
-                        .claim("user", principal.getName());
+                username = principal.getName();
+            } else {
+                authorities = user.authorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+                username = user.username();
             }
+
+            context.getClaims().claim("authorities", authorities)
+                    .claim("user", username);
+
         };
     }
 

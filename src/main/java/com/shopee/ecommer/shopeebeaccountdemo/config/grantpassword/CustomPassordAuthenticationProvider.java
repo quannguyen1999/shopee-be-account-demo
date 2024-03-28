@@ -19,9 +19,7 @@ import org.springframework.security.oauth2.server.authorization.authentication.O
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2ClientAuthenticationToken;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.context.AuthorizationServerContextHolder;
-import org.springframework.security.oauth2.server.authorization.token.DefaultOAuth2TokenContext;
-import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenContext;
-import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
+import org.springframework.security.oauth2.server.authorization.token.*;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -41,6 +39,7 @@ public class CustomPassordAuthenticationProvider implements AuthenticationProvid
     private final PasswordEncoder passwordEncoder;
 
     private final OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator;
+    private final OAuth2TokenCustomizer<JwtEncodingContext> oAuth2TokenCustomizer;
     private String username = "";
     private String password = "";
     private Set<String> authorizedScopes = new HashSet<>();
@@ -48,7 +47,8 @@ public class CustomPassordAuthenticationProvider implements AuthenticationProvid
     public CustomPassordAuthenticationProvider(OAuth2AuthorizationService authorizationService,
                                                OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator,
                                                AccountRepository accountRepository,
-                                               PasswordEncoder passwordEncoder
+                                               PasswordEncoder passwordEncoder,
+                                               OAuth2TokenCustomizer<JwtEncodingContext> oAuth2TokenCustomizer
     ) {
 
         Assert.notNull(authorizationService, "authorizationService cannot be null");
@@ -58,6 +58,8 @@ public class CustomPassordAuthenticationProvider implements AuthenticationProvid
         this.tokenGenerator = tokenGenerator;
         this.accountRepository = accountRepository;
         this.passwordEncoder = passwordEncoder;
+        this.oAuth2TokenCustomizer = oAuth2TokenCustomizer;
+
     }
 
     private static OAuth2ClientAuthenticationToken getAuthenticatedClientElseThrowInvalidClient(Authentication authentication) {
