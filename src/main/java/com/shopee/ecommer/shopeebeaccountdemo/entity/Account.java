@@ -52,7 +52,7 @@ public class Account extends CommonBaseEntities {
 
     private Boolean securityQuestionEnabled;
 
-    @ManyToMany(fetch = FetchType.LAZY,
+    @ManyToMany(fetch = FetchType.EAGER,
             cascade = {
                     CascadeType.PERSIST,
                     CascadeType.MERGE

@@ -24,13 +24,10 @@ public class UserDetailConfigService implements UserDetailsService {
 
     private final AccountRepository accountRepository;
 
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
-
-    private final BytesEncryptor bytesEncryptor;
-
     @Transactional
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
         Account account = accountRepository.findByUsername(username);
         if (ObjectUtils.isEmpty(account)) {
             throw new UsernameNotFoundException("Access Denied " + username);
