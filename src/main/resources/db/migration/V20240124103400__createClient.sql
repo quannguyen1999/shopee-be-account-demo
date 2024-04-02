@@ -14,29 +14,3 @@ create table client
     token_settings                varchar(2000),
     primary key (id)
 );
-
-INSERT INTO client (id,
-                    authorization_grant_types,
-                    client_authentication_methods,
-                    client_id,
-                    client_id_issued_at,
-                    client_name,
-                    client_secret,
-                    client_secret_expires_at,
-                    client_settings,
-                    redirect_uris,
-                    scopes,
-                    token_settings)
-VALUES (gen_random_uuid(),
-        'authorization_code,implicit',
-        'client_secret_basic',
-        'admin',
-        CURRENT_TIMESTAMP,
-        'admin',
-        'admin',
-        CURRENT_TIMESTAMP + INTERVAL '1' DAY, -- Assuming client_secret_expires_at is one day from now
-        '{"key":"value"}',
-        'http://localhost:4200/',
-        'read write',
-        '{"token_key":"token_value"}');
-
