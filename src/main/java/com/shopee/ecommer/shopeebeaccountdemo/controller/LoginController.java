@@ -38,7 +38,6 @@ public class LoginController {
             new SimpleUrlAuthenticationFailureHandler("/authenticator?error");
 
     private final Oauth2Service oauth2Service;
-
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
     private final UserDetailConfigService userDetailConfigService;
 

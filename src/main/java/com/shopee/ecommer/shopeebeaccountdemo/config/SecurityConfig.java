@@ -7,6 +7,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.shopee.ecommer.shopeebeaccountdemo.config.grantpassword.CustomPassordAuthenticationConverter;
 import com.shopee.ecommer.shopeebeaccountdemo.config.grantpassword.CustomPassordAuthenticationProvider;
+import com.shopee.ecommer.shopeebeaccountdemo.config.mfa.MfaHandlerSuccess;
 import com.shopee.ecommer.shopeebeaccountdemo.constant.ConstantUtil;
 import com.shopee.ecommer.shopeebeaccountdemo.constant.PathApi;
 import com.shopee.ecommer.shopeebeaccountdemo.entity.CustomPasswordUser;
@@ -107,10 +108,20 @@ public class SecurityConfig {
         return keyPair;
     }
 
+
+    //Configure Jwt Source
+    @Bean
+    JWKSource<SecurityContext> jwkSource() {
+        RSAKey rsaKey = generateRsa();
+        JWKSet jwkSet = new JWKSet(rsaKey);
+        return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
+    }
+
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
+
         // Allow all origins, methods, and headers. This is just an example.
         config.addAllowedOrigin("*");
         config.addAllowedMethod("*");
@@ -202,7 +213,7 @@ public class SecurityConfig {
                 )
 //                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin().loginPage(PathApi.LOGIN_PATH).permitAll().successHandler(
-                        new MFAHandlerSuccess(PathApi.AUTHENTICATOR_PATH, "ROLE_MFA_REQUIRED")
+                        new MfaHandlerSuccess(PathApi.AUTHENTICATOR_PATH, "ROLE_MFA_REQUIRED")
                 )
                 .and().build();
     }
@@ -268,12 +279,6 @@ public class SecurityConfig {
         return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
     }
 
-    @Bean
-    JWKSource<SecurityContext> jwkSource() {
-        RSAKey rsaKey = generateRsa();
-        JWKSet jwkSet = new JWKSet(rsaKey);
-        return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
-    }
 
     //Set timeout session
     @Bean

@@ -1,4 +1,4 @@
-package com.shopee.ecommer.shopeebeaccountdemo.config;
+package com.shopee.ecommer.shopeebeaccountdemo.config.mfa;
 
 
 import org.springframework.boot.context.properties.ConfigurationProperties;

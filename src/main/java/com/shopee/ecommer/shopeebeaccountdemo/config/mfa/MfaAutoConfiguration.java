@@ -1,4 +1,4 @@
-package com.shopee.ecommer.shopeebeaccountdemo.config;
+package com.shopee.ecommer.shopeebeaccountdemo.config.mfa;
 
 import dev.samstevens.totp.TotpInfo;
 import dev.samstevens.totp.code.*;
@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(MfaProperties.class)
 public class MfaAutoConfiguration {
 
-    private MfaProperties props;
+    private final MfaProperties props;
 
     @Autowired
     public MfaAutoConfiguration(MfaProperties props) {
